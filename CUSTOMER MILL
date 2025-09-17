@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>VK Mill Customer</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<style>
+body { font-family: Arial; padding: 20px; background: #f0f8ff; font-size: 14px; }
+input, button { display: block; margin: 10px 0; padding: 10px; width: 300px; }
+button { cursor: pointer; }
+h2, h3 { color: #00796b; }
+#details { margin-top: 20px; border: 1px solid #ddd; padding: 10px; background: #e6f7ff; }
+</style>
+</head>
+<body>
+
+<h2>VK Mill Customer App</h2>
+<p>Made by Vivek Kumar</p>
+
+<!-- Search Section -->
+<h3>🔍 Search Customer Details</h3>
+<input type="text" id="searchInput" placeholder="Serial Number या Name डालें">
+<button onclick="searchCustomer()">Search</button>
+
+<!-- Details Section -->
+<div id="details" style="display:none;">
+<h3>Customer Details</h3>
+<p><b>Serial:</b> <span id="detailSerial"></span></p>
+<p><b>Name:</b> <span id="detailName"></span></p>
+<p><b>Village:</b> <span id="detailVillage"></span></p>
+<p><b>Type:</b> <span id="detailType"></span></p>
+<p><b>Weight:</b> <span id="detailWeight"></span></p>
+</div>
+
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyAj6dcL-zPijyQSNgRNuSjrYvT9RgGUFRA",
+  authDomain:"vkcustomerapp.firebaseapp.com",
+  databaseURL:"https://vkcustomerapp-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"vkcustomerapp",
+  storageBucket:"vkcustomerapp.firebasestorage.app",
+  messagingSenderId:"385333707391",
+  appId:"1:385333707391:web:dea5dd3821b8fe5afbb54a",
+  measurementId:"G-6GHDNL5N5S"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+// Auto login
+const email = "vijaybhagat62074@gmail.com";
+const password = "9815237898";
+auth.signInWithEmailAndPassword(email,password)
+.then(()=>console.log("Auto login successful"))
+.catch(err=>alert("Login error: "+err.message));
+
+// Search function
+async function searchCustomer(){
+  const input=document.getElementById('searchInput').value.trim();
+  if(!input){ alert("⚠️ Serial या Name डालें"); return; }
+
+  let snapshot;
+  if(!isNaN(input)){ 
+    // Search by Serial number
+    snapshot = await db.collection('customers').doc(input).get();
+    if(snapshot.exists){
+      displayDetails(snapshot.data());
+    } else {
+      alert("❌ Customer not found");
+      hideDetails();
+    }
+  } else {
+    // Search by Name
+    snapshot = await db.collection('customers').where('name','==',input).get();
+    if(!snapshot.empty){
+      displayDetails(snapshot.docs[0].data());
+    } else {
+      alert("❌ Customer not found");
+      hideDetails();
+    }
+  }
+}
+
+function displayDetails(data){
+  document.getElementById('details').style.display='block';
+  document.getElementById('detailSerial').textContent=data.serial;
+  document.getElementById('detailName').textContent=data.name;
+  document.getElementById('detailVillage').textContent=data.village;
+  document.getElementById('detailType').textContent=data.type;
+  document.getElementById('detailWeight').textContent=data.weight;
+}
+
+function hideDetails(){
+  document.getElementById('details').style.display='none';
+}
+</script>
+</body>
+</html>
